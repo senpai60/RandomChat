@@ -1,4 +1,14 @@
-.btn-primary{
-    background-color: white;
-    color: red;
+.btn-primary {
+  background-color: var(--text-primary);
+  color: black;
+  padding: 0.5rem 1rem;
+  border-radius: 0.25rem;
+  border: 2px solid var(--border-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+
+  &:hover {
+    box-shadow: 0 0 10px var(--text-primary);
+    border: none;
+  }
 }
