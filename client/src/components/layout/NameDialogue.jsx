@@ -1,8 +1,14 @@
-import { useState } from "react";
+import { use, useState } from "react";
 import { ArrowRight } from "lucide-react";
+import { useUserContext } from "../../context/UserContext";
+import { useNavigate } from "react-router-dom";
 
 const NameDialogue = ({ canVisible, onClose }) => {
   const [name, setName] = useState("");
+
+  const navigate = useNavigate();
+
+  const { CreateUser } = useUserContext();
 
   return (
     <div
@@ -17,7 +23,11 @@ const NameDialogue = ({ canVisible, onClose }) => {
           type="text"
           placeholder="Your Name"
         />
-        <button style={{ opacity: `${!name.trim() ? 0 : 1}` }}>
+        <button 
+        onClick={()=>{CreateUser(name)
+            navigate("/queue")
+        }}
+        style={{ opacity: `${!name.trim() ? 0 : 1}` }}>
           <span>Start Chatting</span>
           <div className="icon">
             <ArrowRight size={16} />

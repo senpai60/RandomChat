@@ -1,9 +1,13 @@
 import React, { useEffect, useState } from "react";
-import PrimaryButton from "./components/ui/PrimaryButton";
-import NameDialogue from "./components/layout/NameDialogue";
+
 import { useUserContext } from "./context/UserContext.jsx";
+import Queue from "./components/layout/Queue.jsx";
+import HomeSection from "./components/layout/HomeSection.jsx";
+import { Routes,Route } from "react-router-dom";
 const App = () => {
-  const [nameDialogueVisible, setNameDialogueVisible] = useState(true);
+
+
+  
   const { user, GetUser } = useUserContext();
 
   useEffect(() => {
@@ -12,13 +16,10 @@ const App = () => {
 
   return (
     <main className="w-full h-screen flex items-center justify-center">
-      <PrimaryButton onClick={() => setNameDialogueVisible(true)}>
-        Start Chat
-      </PrimaryButton>
-      <NameDialogue
-        onClose={() => setNameDialogueVisible(false)}
-        canVisible={nameDialogueVisible}
-      />
+      <Routes>
+        <Route path="/" element={<HomeSection />} />
+        <Route path="/queue" element={<Queue />} />
+      </Routes>
     </main>
   );
 };

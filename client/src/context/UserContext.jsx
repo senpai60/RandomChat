@@ -16,7 +16,7 @@ export const UserProvider = ({ children }) => {
   const GetUser = () => {
     const currentUser = localStorage.getItem("user");
 
-    setUser(JSON.parse(currentUser ? null : currentUser));
+    setUser(JSON.parse(currentUser ? currentUser : null));
   };
 
   return (
