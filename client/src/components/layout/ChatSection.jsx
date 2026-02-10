@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { useUserContext } from "../../context/UserContext";
 import PrimaryButton from "../ui/PrimaryButton";
+import { useNavigate } from "react-router-dom";
 
 const ChatSection = () => {
   const { socket, roomId, strangerName } = useUserContext();
@@ -8,11 +9,31 @@ const ChatSection = () => {
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState("Connecting...");
 
+  const navigate = useNavigate();
+
   useEffect(() => {
+    let timeoutId = null;
+    if (!roomId) {
+      navigate("/queue");
+    }
+    const intervalId = setTimeout(() => {
+      // Check if we are still connecting and have no room ID
+      // We check !roomId because if we have a room, we shouldn't redirect
+      if (!roomId && status === "Connecting...") {
+        navigate("/queue");
+      }
+    }, 3000);
     if (roomId) {
       setStatus(`Connected with ${strangerName || "Stranger"}`);
     }
     socket.on("waiting", (msg) => setStatus(msg));
+    socket.on("stranger-left", (msg) => {
+      setStatus(msg);
+      setStrangerName(null);
+      timeoutId = setTimeout(() => {
+        navigate("/queue");
+      }, 3000);
+    });
 
     socket.on("start-chat", ({ roomId: newRoomId, user1, user2 }) => {
       setStatus("Connected");
@@ -29,6 +50,9 @@ const ChatSection = () => {
       socket.off("waiting");
       socket.off("start-chat");
       socket.off("receive-message");
+      socket.off("stranger-left");
+      clearTimeout(intervalId);
+      clearTimeout(timeoutId);
     };
   }, [socket, roomId]);
 

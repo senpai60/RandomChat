@@ -1,6 +1,8 @@
 import { createContext, useContext, useState, useMemo } from "react";
 import { io } from "socket.io-client";
 
+const SERVER_URI = import.meta.env.VITE_SERVER_URI;
+
 const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
@@ -9,7 +11,7 @@ export const UserProvider = ({ children }) => {
   const [strangerName, setStrangerName] = useState(null);
 
   // Socket connection
-  const socket = useMemo(() => io("http://localhost:3000"), []);
+  const socket = useMemo(() => io(SERVER_URI), []);
 
   const GetUser = () => {
     // Tera existing logic to get user from localstorage
