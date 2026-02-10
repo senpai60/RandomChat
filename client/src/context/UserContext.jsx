@@ -1,26 +1,31 @@
-import { createContext, useContext, useState } from "react";
+import { createContext, useContext, useState, useMemo } from "react";
+import { io } from "socket.io-client";
 
 const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
+  const [roomId, setRoomId] = useState(null); // Ye add kar
 
-  const CreateUser = (name) => {
-    if (!name.trim() || name.trim().length < 2) return;
-    const id = Math.random().toString(16).slice(2) + Date.now().toString(16);
-    const currentUser = { name, id };
-    setUser(currentUser);
-    localStorage.setItem("user", JSON.stringify(currentUser));
-  };
+  // Socket connection
+  const socket = useMemo(() => io("http://localhost:3000"), []);
 
   const GetUser = () => {
-    const currentUser = localStorage.getItem("user");
+    // Tera existing logic to get user from localstorage
+    const savedUser = JSON.parse(localStorage.getItem("user"));
+    if (savedUser) setUser(savedUser);
+  };
 
-    setUser(JSON.parse(currentUser ? currentUser : null));
+  const CreateUser = (name) => {
+    const newUser = { name, id: socket.id };
+    localStorage.setItem("user", JSON.stringify(newUser));
+    setUser(newUser);
   };
 
   return (
-    <UserContext.Provider value={{ GetUser, CreateUser, user }}>
+    <UserContext.Provider
+      value={{ user, CreateUser, GetUser, socket, roomId, setRoomId }}
+    >
       {children}
     </UserContext.Provider>
   );

@@ -1,18 +1,46 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useUserContext } from "../../context/UserContext";
 import PrimaryButton from "../ui/PrimaryButton";
 
 const ChatSection = () => {
+  const { socket } = useUserContext();
   const [message, setMessage] = useState("");
-  const [messages, setMessages] = useState([
-    { id: 1, text: "Hey there!", sender: "partner" },
-    { id: 2, text: "Hi! How's it going?", sender: "me" },
-  ]);
+  const [messages, setMessages] = useState([]);
+  const [roomName, setRoomName] = useState(null);
+  const [status, setStatus] = useState("Connecting...");
+
+  useEffect(() => {
+    // Listen for events
+    socket.on("waiting", (msg) => setStatus(msg));
+
+    socket.on("chat-started", ({ roomName }) => {
+      setStatus("Connected with Stranger");
+      setRoomName(roomName);
+    });
+
+    socket.on("receive-message", (data) => {
+      setMessages((prev) => [
+        ...prev,
+        { id: Date.now(), text: data.message, sender: "partner" },
+      ]);
+    });
+
+    return () => {
+      socket.off("waiting");
+      socket.off("chat-started");
+      socket.off("receive-message");
+    };
+  }, [socket]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!message.trim()) return;
+    if (!message.trim() || !roomName) return;
 
+    // UI update karo
     setMessages([...messages, { id: Date.now(), text: message, sender: "me" }]);
+
+    // Server ko bhejo
+    socket.emit("send-message", { roomName, message });
     setMessage("");
   };
 
@@ -20,12 +48,10 @@ const ChatSection = () => {
     <section className="chat-section">
       <div className="chat-container">
         <header className="chat-header">
-          <div className="avatar-placeholder">P</div>
           <div className="user-info">
-            <h3>Partner</h3>
-            <span className="status">Online</span>
+            <h3>Stranger</h3>
+            <span className="status">{status}</span>
           </div>
-          <PrimaryButton className="exit-btn">Exit</PrimaryButton>
         </header>
 
         <div className="messages-area">
@@ -45,22 +71,10 @@ const ChatSection = () => {
             placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
+            disabled={!roomName} // Jab tak connect na ho, type mat karne do
           />
-          <button type="submit" className="send-btn">
-            <svg
-              xmlns="http://www.w3.org/2000/svg"
-              width="24"
-              height="24"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="currentColor"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-            >
-              <line x1="22" y1="2" x2="11" y2="13"></line>
-              <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
-            </svg>
+          <button type="submit" className="send-btn" disabled={!roomName}>
+            Send
           </button>
         </form>
       </div>
