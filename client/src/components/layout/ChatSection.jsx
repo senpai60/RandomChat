@@ -8,6 +8,8 @@ const ChatSection = () => {
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
   const [status, setStatus] = useState("Connecting...");
+  const [isTyping, setIsTyping] = useState(false);
+  const [typingTimeout, setTypingTimeout] = useState(null);
 
   const navigate = useNavigate();
 
@@ -46,11 +48,21 @@ const ChatSection = () => {
       ]);
     });
 
+    socket.on("display-typing", () => {
+      setIsTyping(true);
+    });
+
+    socket.on("hide-typing", () => {
+      setIsTyping(false);
+    });
+
     return () => {
       socket.off("waiting");
       socket.off("start-chat");
       socket.off("receive-message");
       socket.off("stranger-left");
+      socket.off("display-typing");
+      socket.off("hide-typing");
       clearTimeout(intervalId);
       clearTimeout(timeoutId);
     };
@@ -65,7 +77,24 @@ const ChatSection = () => {
 
     // Server ko bhejo
     socket.emit("send-message", { roomId, message });
+
+    // Stop typing indicator immediately when sending
+    socket.emit("stop-typing", { roomId });
     setMessage("");
+  };
+
+  const handleInputChange = (e) => {
+    setMessage(e.target.value);
+
+    socket.emit("typing", { roomId });
+
+    if (typingTimeout) clearTimeout(typingTimeout);
+
+    const newTimeout = setTimeout(() => {
+      socket.emit("stop-typing", { roomId });
+    }, 1000);
+
+    setTypingTimeout(newTimeout);
   };
 
   return (
@@ -87,6 +116,13 @@ const ChatSection = () => {
               <p>{msg.text}</p>
             </div>
           ))}
+          {isTyping && (
+            <div className="message-bubble partner-message typing-indicator">
+              <span className="dot"></span>
+              <span className="dot"></span>
+              <span className="dot"></span>
+            </div>
+          )}
         </div>
 
         <form className="input-area" onSubmit={handleSendMessage}>
@@ -94,7 +130,7 @@ const ChatSection = () => {
             type="text"
             placeholder="Type a message..."
             value={message}
-            onChange={(e) => setMessage(e.target.value)}
+            onChange={handleInputChange}
             disabled={!roomId} // Jab tak connect na ho, type mat karne do
           />
           <button type="submit" className="send-btn" disabled={!roomId}>

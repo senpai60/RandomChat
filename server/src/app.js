@@ -59,6 +59,14 @@ io.on("connection", (socket) => {
     socket.to(roomId).emit("receive-message", { message, sender: "stranger" });
   });
 
+  socket.on("typing", ({ roomId }) => {
+    socket.to(roomId).emit("display-typing", { sender: "stranger" });
+  });
+
+  socket.on("stop-typing", ({ roomId }) => {
+    socket.to(roomId).emit("hide-typing", { sender: "stranger" });
+  });
+
   socket.on("disconnect", () => {
     if (waitingUser === socket) {
       waitingUser = null;
