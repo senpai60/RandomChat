@@ -62,8 +62,7 @@
     }
   }
 
-  #dialogue-close{
-    
+  #dialogue-close {
     color: rgb(134, 133, 133);
     font-weight: 400;
     text-decoration: underline;
@@ -71,73 +70,225 @@
     cursor: pointer;
     transition: all 0.2s ease;
 
-    &:hover{
+    &:hover {
       color: rgb(174, 73, 73);
-        text-decoration: none;
+      text-decoration: none;
     }
   }
 }
 
-.queue-section{
+.queue-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  .queue-box {
+    width: 400px;
+    height: 200px;
+    padding: 1.5rem;
+    // border: 1px solid var(--border-color);
+    border-radius: 8px;
     display: flex;
-    justify-content: center;
     align-items: center;
-    .queue-box{
-        width: 400px;
-        height: 200px;
-        padding: 1.5rem;
-        // border: 1px solid var(--border-color);
+    justify-content: center;
+    gap: 2rem;
+
+    .queue-divider {
+      width: 1px;
+      height: 100%;
+      background-color: var(--border-color);
+    }
+
+    .left-queue,
+    .right-queue {
+      background-color: var(--surface-color);
+      width: 100px;
+      height: 100px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      gap: 1rem;
+      border-radius: 50%;
+
+      h3 {
+        color: var(--text-primary);
+      }
+    }
+
+    .left-queue {
+      h3 {
+        text-transform: uppercase;
+      }
+    }
+    .right-queue {
+      // background-color: steelblue;
+      overflow: hidden;
+
+      .chars {
+        position: relative;
+        // display: flex;
+        // flex-direction: column;
+
+        h1 {
+          position: absolute;
+          top: 50%;
+          left: 50%;
+          transform: translate(-50%, -50%);
+        }
+      }
+    }
+  }
+}
+
+.chat-section {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 1rem;
+
+  .chat-container {
+    width: 600px; // Or 100% max-width if responsive
+    max-width: 100%;
+    height: 80vh;
+    background-color: var(--surface-color);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden; // Ensure children don't overflow rounded corners
+
+    .chat-header {
+      padding: 1rem;
+      border-bottom: 1px solid var(--border-color);
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      background-color: rgba(0, 0, 0, 0.2); // Slightly darker header
+
+      .avatar-placeholder {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%;
+        background-color: var(--text-primary);
+        color: black;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        font-weight: bold;
+      }
+
+      .user-info {
+        flex: 1;
+
+        h3 {
+          font-size: 1rem;
+          margin-bottom: 0.2rem;
+        }
+
+        .status {
+          font-size: 0.8rem;
+          color: var(--accent-color);
+        }
+      }
+
+      .exit-btn {
+        padding: 0.25rem 0.75rem;
+        font-size: 0.8rem;
+      }
+    }
+
+    .messages-area {
+      flex: 1;
+      padding: 1rem;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+
+      // Scrollbar styling (optional but recommended for dark theme)
+      &::-webkit-scrollbar {
+        width: 6px;
+      }
+      &::-webkit-scrollbar-track {
+        background: transparent;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: var(--border-color);
+        border-radius: 3px;
+      }
+
+      .message-bubble {
+        padding: 0.75rem 1rem;
+        border-radius: 12px;
+        max-width: 70%;
+        line-height: 1.4;
+        font-size: 0.95rem;
+
+        &.my-message {
+          align-self: flex-end;
+          background-color: var(--text-primary);
+          color: black;
+          border-bottom-right-radius: 2px;
+        }
+
+        &.partner-message {
+          align-self: flex-start;
+          background-color: rgba(255, 255, 255, 0.1); // Subtle background
+          color: var(--text-primary);
+          border: 1px solid var(--border-color);
+          border-bottom-left-radius: 2px;
+        }
+      }
+    }
+
+    .input-area {
+      padding: 1rem;
+      border-top: 1px solid var(--border-color);
+      display: flex;
+      gap: 0.75rem;
+      background-color: rgba(0, 0, 0, 0.2);
+
+      input {
+        flex: 1;
+        background-color: transparent;
+        border: 1px solid var(--border-color);
+        border-radius: 8px;
+        padding: 0.75rem;
+        color: var(--text-primary);
+        outline: none;
+
+        &:focus {
+          border-color: var(--text-primary);
+        }
+      }
+
+      .send-btn {
+        background-color: var(--text-primary);
+        color: black;
+        border: none;
+        width: 45px;
+        height: 45px; // Square-ish button
         border-radius: 8px;
         display: flex;
-        align-items: center;
         justify-content: center;
-        gap: 2rem;
-        
-        .queue-divider{
-            width: 1px;
-            height: 100%;
-            background-color: var(--border-color);
-        }
-        
-        .left-queue,.right-queue{
-            background-color: var(--surface-color);
-            width: 100px;
-            height: 100px;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            gap: 1rem;
-            border-radius: 50%;
+        align-items: center;
+        cursor: pointer;
+        transition: transform 0.1s;
 
-            h3{
-                color: var(--text-primary);
-            }
+        &:hover {
+          opacity: 0.9;
+          transform: scale(1.05);
         }
 
-
-        .left-queue{
-            h3{
-                text-transform: uppercase;
-            }
+        &:active {
+          transform: scale(0.95);
         }
-        .right-queue{
-            // background-color: steelblue;
-            overflow: hidden;
-            
-            .chars{
-                position: relative;
-                // display: flex;
-                // flex-direction: column;
 
-                h1{
-                    position: absolute;
-                    top: 50%;
-                    left: 50%;
-                    transform: translate(-50%,-50%);
-                    
-                }
-            }
+        svg {
+          width: 20px;
+          height: 20px;
         }
+      }
     }
+  }
 }
