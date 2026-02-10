@@ -1,15 +1,19 @@
 import { useGSAP } from "@gsap/react";
 import { gsap } from "gsap";
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react"; // useRef import kiya
 import { useUserContext } from "../../context/UserContext";
 import { useNavigate } from "react-router-dom";
 
 const Queue = () => {
-  const { user, GetUser, socket, setRoomId } = useUserContext(); // setRoomId chahiye context se
-  const [matchFound, setMatchFound] = useState(false); // Naming thoda clear kiya
+  const { user, GetUser, socket, setRoomId, setStrangerName } =
+    useUserContext();
+  const [matchFound, setMatchFound] = useState(false);
   const navigate = useNavigate();
 
-  // GSAP Animation (Same as yours - Good stuff!)
+  // LOCK: Ye ensure karega ki request bas ek baar jaye
+  const hasJoined = useRef(false);
+
+  // GSAP Animation
   useGSAP(() => {
     const chars = gsap.utils.toArray(".chars h1");
     gsap.set(chars, { opacity: 0, yPercent: (i) => 50 + i * 5 });
@@ -24,26 +28,30 @@ const Queue = () => {
     });
   });
 
+  // User details fetch karo
   useEffect(() => {
     GetUser();
+  }, []);
 
-    // Server ko bolo: "Main line mein laga hu"
-    if (user) {
-      socket.emit("join-chat", user.name);
-    }
-
-    // Cleanup: Agar user queue chhod ke back chala jaye
-    return () => {
-      // Optional: socket.emit("leave-queue");
-    };
-  }, [user]); // User load hone par trigger karein
-
+  // Server ko join request bhejo (SIRF EK BAAR)
   useEffect(() => {
-    // Listener: Jab match mil jaye
-    const handleStartChat = ({ roomId }) => {
+    if (user && !hasJoined.current) {
+      console.log("Joining queue...");
+      socket.emit("join-chat", user.name);
+      hasJoined.current = true; // Lock laga diya
+    }
+  }, [user]);
+
+  // Match milne ka wait karo
+  useEffect(() => {
+    const handleStartChat = ({ roomId, user1, user2 }) => {
       console.log("Match Found! Room:", roomId);
-      setRoomId(roomId); // Context mein Room ID save karo
-      setMatchFound(true); // Trigger navigation
+      setRoomId(roomId);
+
+      const stranger = user1.id === socket.id ? user2 : user1;
+      setStrangerName(stranger.username);
+
+      setMatchFound(true);
     };
 
     socket.on("start-chat", handleStartChat);
@@ -53,7 +61,7 @@ const Queue = () => {
     };
   }, [socket, setRoomId]);
 
-  // Navigation Effect
+  // Navigate karo
   useEffect(() => {
     if (matchFound) {
       navigate("/chat");
@@ -64,7 +72,6 @@ const Queue = () => {
     <section className="queue-section">
       <div className="queue-box">
         <div className="left-queue">
-          {/* Safety check: User might be null initially */}
           <h3>{user?.name ? user.name.split("")[0] : "?"}</h3>
         </div>
         <div className="queue-divider"></div>

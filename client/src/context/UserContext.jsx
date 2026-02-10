@@ -5,7 +5,8 @@ const UserContext = createContext(null);
 
 export const UserProvider = ({ children }) => {
   const [user, setUser] = useState(null);
-  const [roomId, setRoomId] = useState(null); // Ye add kar
+  const [roomId, setRoomId] = useState(null);
+  const [strangerName, setStrangerName] = useState(null);
 
   // Socket connection
   const socket = useMemo(() => io("http://localhost:3000"), []);
@@ -24,7 +25,16 @@ export const UserProvider = ({ children }) => {
 
   return (
     <UserContext.Provider
-      value={{ user, CreateUser, GetUser, socket, roomId, setRoomId }}
+      value={{
+        user,
+        CreateUser,
+        GetUser,
+        socket,
+        roomId,
+        setRoomId,
+        strangerName,
+        setStrangerName,
+      }}
     >
       {children}
     </UserContext.Provider>

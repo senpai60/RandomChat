@@ -1,11 +1,10 @@
 import express from "express";
-const app = express();
 import { createServer } from "http";
-
 import cors from "cors";
 import morgan from "morgan";
 import { Server } from "socket.io";
 
+const app = express();
 app.use(cors());
 app.use(morgan("dev"));
 
@@ -26,23 +25,27 @@ io.on("connection", (socket) => {
 
   socket.on("join-chat", (username) => {
     if (waitingUser && waitingUser.id !== socket.id) {
-      // Match Found!
       const roomId = `${waitingUser.id}-${socket.id}`;
-
       const user1 = waitingUser;
+      socket.username = username;
       const user2 = socket;
 
-      // Dono ko room mein daalo
       user1.join(roomId);
       user2.join(roomId);
 
-      // Event name MUST match your frontend: "start-chat"
-      io.to(roomId).emit("start-chat", { roomId });
+      user1.currentRoom = roomId;
+      user2.currentRoom = roomId;
+
+      io.to(roomId).emit("start-chat", {
+        roomId,
+        user1: { id: user1.id, username: user1.username },
+        user2: { id: user2.id, username: user2.username },
+      });
 
       console.log(`Matched in Room: ${roomId}`);
-      waitingUser = null; // Queue clear
+      waitingUser = null;
     } else {
-      // No match, put in queue
+      socket.username = username;
       waitingUser = socket;
       console.log("User added to queue:", socket.id);
     }
@@ -55,8 +58,10 @@ io.on("connection", (socket) => {
   socket.on("disconnect", () => {
     if (waitingUser === socket) {
       waitingUser = null;
-    } else {
-      io.to(roomId).emit("stranger-left", "The stranger has left the chat");
+    } else if (socket.currentRoom) {
+      socket
+        .to(socket.currentRoom)
+        .emit("stranger-left", "The stranger has left the chat");
     }
   });
 });

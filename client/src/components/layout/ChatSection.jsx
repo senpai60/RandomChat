@@ -3,19 +3,19 @@ import { useUserContext } from "../../context/UserContext";
 import PrimaryButton from "../ui/PrimaryButton";
 
 const ChatSection = () => {
-  const { socket } = useUserContext();
+  const { socket, roomId, strangerName } = useUserContext();
   const [message, setMessage] = useState("");
   const [messages, setMessages] = useState([]);
-  const [roomName, setRoomName] = useState(null);
   const [status, setStatus] = useState("Connecting...");
 
   useEffect(() => {
-    // Listen for events
+    if (roomId) {
+      setStatus(`Connected with ${strangerName || "Stranger"}`);
+    }
     socket.on("waiting", (msg) => setStatus(msg));
 
-    socket.on("chat-started", ({ roomName }) => {
-      setStatus("Connected with Stranger");
-      setRoomName(roomName);
+    socket.on("start-chat", ({ roomId: newRoomId, user1, user2 }) => {
+      setStatus("Connected");
     });
 
     socket.on("receive-message", (data) => {
@@ -27,20 +27,20 @@ const ChatSection = () => {
 
     return () => {
       socket.off("waiting");
-      socket.off("chat-started");
+      socket.off("start-chat");
       socket.off("receive-message");
     };
-  }, [socket]);
+  }, [socket, roomId]);
 
   const handleSendMessage = (e) => {
     e.preventDefault();
-    if (!message.trim() || !roomName) return;
+    if (!message.trim() || !roomId) return;
 
     // UI update karo
     setMessages([...messages, { id: Date.now(), text: message, sender: "me" }]);
 
     // Server ko bhejo
-    socket.emit("send-message", { roomName, message });
+    socket.emit("send-message", { roomId, message });
     setMessage("");
   };
 
@@ -49,7 +49,7 @@ const ChatSection = () => {
       <div className="chat-container">
         <header className="chat-header">
           <div className="user-info">
-            <h3>Stranger</h3>
+            <h3>{strangerName || "Stranger"}</h3>
             <span className="status">{status}</span>
           </div>
         </header>
@@ -71,9 +71,9 @@ const ChatSection = () => {
             placeholder="Type a message..."
             value={message}
             onChange={(e) => setMessage(e.target.value)}
-            disabled={!roomName} // Jab tak connect na ho, type mat karne do
+            disabled={!roomId} // Jab tak connect na ho, type mat karne do
           />
-          <button type="submit" className="send-btn" disabled={!roomName}>
+          <button type="submit" className="send-btn" disabled={!roomId}>
             Send
           </button>
         </form>
